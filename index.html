@@ -60,7 +60,9 @@ h1 span{color:var(--accent)}
 
 /* progress */
 .progress{margin:18px 28px 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;cursor:pointer;text-align:left;box-shadow:none}
+.stat:hover{border-color:var(--line2)}
+.stat.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .stat b{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .stat small{color:var(--ink2);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
 .stat.done b{color:var(--done)} .stat.rip b{color:var(--rip)}
@@ -133,11 +135,11 @@ details.help code{font-family:"IBM Plex Mono",monospace;font-size:12px;backgroun
   </div>
 </header>
 
-<div class="progress">
-  <div class="stat"><b id="sAll">0</b><small>records in collection</small></div>
-  <div class="stat done"><b id="sDone">0</b><small>in Plex</small></div>
-  <div class="stat rip"><b id="sRip">0</b><small>ripping / in progress</small></div>
-  <div class="stat"><b id="sTodo">0</b><small>still on the shelf</small></div>
+<div class="progress" id="tiles">
+  <button class="stat active" data-v=""><b id="sAll">0</b><small>records in collection</small></button>
+  <button class="stat done" data-v="done"><b id="sDone">0</b><small>in Plex</small></button>
+  <button class="stat rip" data-v="rip"><b id="sRip">0</b><small>ripping / in progress</small></button>
+  <button class="stat" data-v="todo"><b id="sTodo">0</b><small>still on the shelf</small></button>
 </div>
 <div class="groove" aria-hidden="true"><i class="d" id="gD"></i><i class="r" id="gR"></i></div>
 
@@ -273,7 +275,9 @@ rowsEl.addEventListener("change",e=>{
   state.items[id]={s:cur.s,n:e.target.value,t:cur.t}; save();
 });
 q.addEventListener("input",()=>{filt.q=q.value;render();});
-fStatus.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return; [...fStatus.children].forEach(x=>x.setAttribute("aria-pressed",x===b)); filt.s=b.dataset.v; render(); });
+function setStatus(v){ filt.s=v; [...fStatus.children].forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===v)); [...tiles.children].forEach(x=>x.classList.toggle("active",x.dataset.v===v)); render(); }
+fStatus.addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) setStatus(b.dataset.v); });
+tiles.addEventListener("click",e=>{ const b=e.target.closest("button.stat"); if(b) setStatus(b.dataset.v); });
 fFormat.addEventListener("change",()=>{filt.f=fFormat.value;render();});
 fGenre.addEventListener("change",()=>{filt.g=fGenre.value;render();});
 document.querySelectorAll("th[data-sort]").forEach(th=>th.addEventListener("click",()=>{
