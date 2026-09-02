@@ -147,7 +147,7 @@ details.help code{font-family:"IBM Plex Mono",monospace;font-size:12px;backgroun
     <li>Sign in to Discogs, then open <code>https://www.discogs.com/users/export</code> (also under your avatar → <em>Export</em>).</li>
     <li>Choose <strong>Collection</strong> and click <strong>Request Data Export</strong>. Discogs builds the file in the background — usually a minute or two — and lists it on the same page (it also emails you).</li>
     <li>Click <strong>Download</strong> to get the CSV, then use <strong>Import Discogs CSV</strong> above. New records are added; existing ones keep their Plex status and notes (matched on <code>release_id</code>).</li>
-    <li>Your progress lives in this browser's storage for this file. Click <strong>Back up progress</strong> now and then, save the file as <code>progress.json</code> next to this page and commit it — the page loads it automatically when served from GitHub Pages.</li>
+    <li>Your progress lives in this browser's storage for this file. Click <strong>Back up progress</strong> now and then to save a JSON copy next to this page.</li>
   </ol>
 </details>
 
@@ -322,14 +322,6 @@ csv.addEventListener("change",e=>{
 });
 
 populateFilters(); render();
-// If a progress.json sits next to this page (e.g. committed to the GitHub repo), use it as the baseline.
-// Anything already set in this browser wins over the file.
-if (location.protocol !== "file:") fetch("progress.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(p=>{
-  if(!p||!p.items) return; let merged=0;
-  for(const id in p.items) if(!state.items[id]){ state.items[id]=p.items[id]; merged++; }
-  (p.extra||[]).forEach(x=>{ if(!all().some(r=>String(r.id)===String(x.id))){ state.extra.push(x); merged++; } });
-  if(merged){ save(); populateFilters(); render(); }
-}).catch(()=>{});
 </script>
 </body>
 </html>

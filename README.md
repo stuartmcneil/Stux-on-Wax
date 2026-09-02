@@ -1,6 +1,6 @@
 # Stux on Wax
 
-A catalogue of Stux's vinyl collection and how much of it has been digitised into Plex.
+A catalogue of [Stuart McNeil](https://stuartmcneil.github.io/window/)'s vinyl collection and how much of it has been digitised into Plex.
 
 **Live page:** enable GitHub Pages (Settings → Pages → Deploy from branch → `main` / root) and open `https://<your-username>.github.io/<repo-name>/`.
 Or just open `index.html` locally.
@@ -14,7 +14,7 @@ Or just open `index.html` locally.
 | `discogs_collection_snapshot.csv` | Plain CSV of the collection as fetched on 2 Sep 2026. |
 | `vinyl_digitizer.py` | Script that splits a recorded side into tracks, tags them from MusicBrainz and embeds artwork. |
 
-Audio files (`*.wav`, `*.mp3`, `digitized_vinyl/`) are ignored by git — they live only in `C:\STUX\CLAUDE\Stux MP3`.
+Audio files (`*.wav`, `*.mp3`, `digitized_vinyl/`) are ignored by git and stay on the local machine.
 
 ## Keeping it up to date
 
