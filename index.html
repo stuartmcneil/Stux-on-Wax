@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stux on Wax - Digitized Vinyl Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .album-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .album-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+        }
+        
+        .album-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .album-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+        }
+        
+        .album-info {
+            padding: 15px;
+        }
+        
+        .album-artist {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .album-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        
+        .album-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+        }
+        
+        .status-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .track-count {
+            color: #999;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .last-updated {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Stux on Wax</h1>
+            <p class="subtitle">Digitized Vinyl Collection</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <strong>Albums:</strong> 8
+                </div>
+                <div class="stat-item">
+                    <strong>Total Tracks:</strong> 126
+                </div>
+            </div>
+        </header>
+        
+        <div class="album-grid">
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">Adamski</div>
+                    <div class="album-title">LIVEANDIRECT</div>
+                    <div class="album-meta">
+                        <span class="track-count">13 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">De La Soul</div>
+                    <div class="album-title">mp3</div>
+                    <div class="album-meta">
+                        <span class="track-count">17 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">De La Soul’s Plug 1 & Plug 2 present…</div>
+                    <div class="album-title">First Serve</div>
+                    <div class="album-meta">
+                        <span class="track-count">16 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">Janet Jackson</div>
+                    <div class="album-title">Velvet Rope</div>
+                    <div class="album-meta">
+                        <span class="track-count">18 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">Marvin Gaye</div>
+                    <div class="album-title">Let's Get It On</div>
+                    <div class="album-meta">
+                        <span class="track-count">17 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">Metal Fingers</div>
+                    <div class="album-title">Special Herbs, Volume 4, 5 & 6</div>
+                    <div class="album-meta">
+                        <span class="track-count">21 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">MF Doom</div>
+                    <div class="album-title">MM..Doom</div>
+                    <div class="album-meta">
+                        <span class="track-count">17 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+            <div class="album-card">
+                <div class="album-cover">
+                    <div class="album-cover-placeholder">♫</div>
+                </div>
+                <div class="album-info">
+                    <div class="album-artist">Shopping Bags (She Got From You)</div>
+                    <div class="album-title">De La Soul</div>
+                    <div class="album-meta">
+                        <span class="track-count">7 tracks</span>
+                        <span class="status-badge">Digitized</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p class="last-updated">Last updated: 2026-09-09 16:18:15</p>
+            <p>Collection stored in Plex</p>
+        </footer>
+    </div>
+</body>
+</html>
