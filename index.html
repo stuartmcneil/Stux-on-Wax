@@ -246,7 +246,7 @@ function render(){
     const desc=(r.format.match(/\((.*)\)/)||[])[1];
     const chips=[fmtShort(r.format)].concat(desc?desc.split(", ").slice(0,3):[]).map(c=>`<span class="chip">${esc(c)}</span>`).join("");
     return `<tr class="row ${s.s}" data-id="${r.id}">
-      <td class="th">${r.cover?`<img loading="lazy" src="${esc(r.cover)}" alt="">`:`<div class="noimg"></div>`}</td>
+      <td class="th">${r.cover?`<img loading="lazy" src="covers/${r.id}.jpg" onerror="this.onerror=null;this.src=this.dataset.f" data-f="${esc(r.cover)}" alt="">`:`<div class="noimg"></div>`}</td>
       <td><div class="t">${esc(r.title)}</div><div class="a">${esc(r.artist)}</div>${s.s!=="todo"?`<div class="path mono">${esc(folder(r))}</div>`:""}</td>
       <td class="yr">${r.year||"—"}</td>
       <td>${chips}</td>

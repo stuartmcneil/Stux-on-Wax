@@ -17,6 +17,9 @@ Or just open `index.html` locally.
 | `stux_progress_updater.py` | Updates `progress.json` from what has been ripped. |
 | `discogs_to_stux.py` | Converts a Discogs CSV export and checks Plex for what's already in the library. |
 | `test_plex.py` | Quick Plex connection test. |
+| `stux_covers.py` | Downloads cover art: `covers/` thumbnails for the page, and full-size Discogs art saved as `cover.jpg` and embedded in each digitised album's MP3s. |
+| `covers/` | Cover thumbnails for the page, one per Discogs release id. |
+| `discogs_config.example.json` | Template for `discogs_config.json` (Discogs personal access token — git-ignored). |
 | `plex_config.example.json` | Template for `plex_config.json` (your Plex URL and token — git-ignored, never commit the real one). |
 
 Audio files (`*.wav`, `*.mp3`, `digitized_vinyl/`) are ignored by git and stay on the local machine.
