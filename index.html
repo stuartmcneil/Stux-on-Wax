@@ -97,6 +97,12 @@ tr.tracks td{background:var(--bg2);padding:10px 14px 12px 60px;border-bottom:1px
 .seg{display:inline-flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:var(--panel)}
 .seg button{border:0;background:transparent;padding:7px 11px;color:var(--ink2)}
 .seg button+button{border-left:1px solid var(--line)}
+.seg button{display:inline-flex;align-items:center;gap:5px}
+.ic{display:inline-block;width:11px;height:11px;flex:none}
+.ic.disc{border-radius:50%;background:radial-gradient(circle,var(--accent) 0 2px,transparent 2.5px 3.5px,currentColor 4px 100%)}
+.ic.play{width:0;height:0;border-style:solid;border-width:5.5px 0 5.5px 9px;border-color:transparent transparent transparent currentColor}
+.ic.rec{border-radius:50%;background:var(--rip);width:9px;height:9px;margin:0 1px}
+.ic+.ic{margin-left:-2px}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);font-weight:500}
 .count{color:var(--ink3);font-size:12px;margin-left:auto;font-variant-numeric:tabular-nums}
 
@@ -113,6 +119,7 @@ td.th img{width:40px;height:40px;border-radius:3px;object-fit:cover;display:bloc
 td.th .noimg{width:40px;height:40px;border-radius:3px;background:var(--todo-bg)}
 .t{font-weight:600;line-height:1.25}
 .a{color:var(--ink2);font-size:13px}
+td.tr{white-space:nowrap;font-variant-numeric:tabular-nums}
 td.yr,td.id{font-variant-numeric:tabular-nums;color:var(--ink2);white-space:nowrap}
 .chip{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--todo-bg);color:var(--ink2);margin-right:4px;white-space:nowrap}
 td.cat{font-size:12px;color:var(--ink2);max-width:170px}
@@ -180,11 +187,12 @@ details.help code{font-family:"IBM Plex Mono",monospace;font-size:12px;backgroun
 <div class="controls">
   <input type="search" id="q" placeholder="Search artist, title, label, cat no…" autocomplete="off">
   <div class="seg" id="fSrc" role="group" aria-label="Source filter" hidden>
-    <button data-v="" aria-pressed="true">All music</button>
-    <button data-v="vinyl" aria-pressed="false">All vinyl</button>
-    <button data-v="both" aria-pressed="false">Both Plex and Vinyl</button>
-    <button data-v="torip" aria-pressed="false">Vinyl not on Plex (to rip)</button>
-    <button data-v="plex" aria-pressed="false">Plex only</button>
+    <button data-v="" aria-pressed="true" title="Everything: vinyl and Plex">♫ All</button>
+    <button data-v="vinyl" aria-pressed="false" title="Every record in the vinyl collection"><i class="ic disc"></i>Vinyl</button>
+    <button data-v="both" aria-pressed="false" title="Vinyl records that are also on Plex"><i class="ic disc"></i><i class="ic play"></i>Both</button>
+    <button data-v="torip" aria-pressed="false" title="Vinyl not on Plex — still to rip"><i class="ic rec"></i>To rip</button>
+    <button data-v="plexalb" aria-pressed="false" title="Plex-only albums (4+ tracks)"><i class="ic play"></i>Plex albums</button>
+    <button data-v="plexsgl" aria-pressed="false" title="Plex-only with 1–3 tracks: singles, EPs, odd files"><i class="ic play"></i>Plex 1–3 tracks</button>
   </div>
   <div class="seg" id="fStatus" role="group" aria-label="Status filter">
     <button data-v="" aria-pressed="true">All</button>
@@ -203,8 +211,9 @@ details.help code{font-family:"IBM Plex Mono",monospace;font-size:12px;backgroun
     <th></th>
     <th data-sort="artist" class="on asc">Artist / Title</th>
     <th data-sort="year">Year</th>
-    <th>Format</th>
-    <th>Label · Cat no</th>
+    <th data-sort="format">Format</th>
+    <th data-sort="tracks">Tracks</th>
+    <th data-sort="label">Label · Cat no</th>
     <th>Genre</th>
     <th data-sort="status">Plex status</th>
     <th>Notes</th>
@@ -261,7 +270,7 @@ function dur(s){ return s?`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`:
 function trackHay(r){ const pk=r.plex?r.key:r.plexKey; const t=pk&&TR[pk]; const v=!r.plex&&DT[r.id];
   return ((t?t.t.map(x=>x[1]+" "+(x[3]||"")).join(" "):"")+" "+(v?v.t.map(x=>x[1]+" "+(x[3]||"")).join(" "):"")).toLowerCase(); }
 function hasTracks(r){ const pk=r.plex?r.key:r.plexKey; return !!((pk&&TR[pk])||(!r.plex&&DT[r.id])); }
-function nTracks(r){ const pk=r.plex?r.key:r.plexKey; const v=!r.plex&&DT[r.id]; return v?v.t.length:(pk&&TR[pk]?TR[pk].t.length:0); }
+function nTracks(r){ const pk=r.plex?r.key:r.plexKey; const v=!r.plex&&DT[r.id]; return v?v.t.length:(pk&&TR[pk]?TR[pk].t.length:(r.plex?(r.tracks||0):0)); }
 function tlist(rows,q,pos){ const cols=rows.length<=12?1:rows.length<=30?2:3, R=Math.ceil(rows.length/cols); return `<div class="tl" style="grid-template-rows:repeat(${R},auto);grid-template-columns:repeat(${cols},1fr)">${rows.map(x=>`<div class="${q&&(x[1]+" "+(x[3]||"")).toLowerCase().includes(q)?"hit":""}"><span class="no ${pos?"pos":""}">${esc(x[0]||"")}</span><span class="ti">${esc(x[1])}${x[3]?`<span class="ta"> — ${esc(x[3])}</span>`:""}</span><span class="du">${dur(x[2])}</span></div>`).join("")}</div>`; }
 function trackRow(r,q){
   const pk=r.plex?r.key:r.plexKey; const t=pk&&TR[pk]; const v=!r.plex&&DT[r.id]; if(!t&&!v) return "";
@@ -278,7 +287,7 @@ function trackRow(r,q){
       p.studio?`label <b>${esc(p.studio)}</b>`:"", p.rating?`rating <b>${p.rating}</b>`:"", p.added?`added to Plex ${esc(p.added)}`:""].filter(Boolean).map(x=>`<span>${x}</span>`).join("");
     out+=`${v?'<div class="tsec">Plex (digital)</div>':""}<div class="tmeta">${meta}</div>${tlist(t.t,q,false)}`;
   }
-  return `<tr class="tracks"><td colspan="9">${out}</td></tr>`;
+  return `<tr class="tracks"><td colspan="10">${out}</td></tr>`;
 }
 function plexUrl(key){ return `https://app.plex.tv/desktop/#!/server/${PLEX.machine}/details?key=${encodeURIComponent("/library/metadata/"+key)}`; }
 function src(r){ return r.plex ? "plex" : (r.plexKey || st(r.id).s==="done") ? "both" : "vinyl"; }
@@ -309,6 +318,8 @@ function render(){
     if(filt.src==="onplex" ? sr==="vinyl"
        : filt.src==="vinyl" ? r.plex
        : filt.src==="torip" ? sr!=="vinyl"
+       : filt.src==="plexalb" ? !(r.plex && nTracks(r)>=4)
+       : filt.src==="plexsgl" ? !(r.plex && nTracks(r)<=3)
        : (filt.src && sr!==filt.src)) return false;
     if(filt.s && (r.plex || s.s!==filt.s)) return false;
     if(filt.f && fmtShort(r.format)!==filt.f) return false;
@@ -319,6 +330,9 @@ function render(){
   rs.sort((a,b)=>{
     let x,y;
     if(sort.k==="year"){x=a.year||9999;y=b.year||9999;}
+    else if(sort.k==="format"){x=(a.plex?"zz plex":fmtShort(a.format)+" "+a.format).toLowerCase();y=(b.plex?"zz plex":fmtShort(b.format)+" "+b.format).toLowerCase();}
+    else if(sort.k==="tracks"){x=nTracks(a)||-1;y=nTracks(b)||-1;}
+    else if(sort.k==="label"){x=(a.label||"").toLowerCase()||"zzz";y=(b.label||"").toLowerCase()||"zzz";}
     else if(sort.k==="status"){x=order[st(a.id).s];y=order[st(b.id).s];}
     else if(sort.k==="id"){x=a.plex?1e12:a.id;y=b.plex?1e12:b.id;}
     else {x=sortKey(a.artist)+" "+a.title.toLowerCase();y=sortKey(b.artist)+" "+b.title.toLowerCase();}
@@ -332,14 +346,15 @@ function render(){
     const s=st(r.id);
     const desc=(r.format.match(/\((.*)\)/)||[])[1];
     const pk=r.plex?r.key:r.plexKey; const isOpen=open.has(String(r.id));
-    const tog=hasTracks(r)?`<button class="tt ${isOpen?"open":""}" data-t="1" title="${isOpen?"Hide":"Show"} track list">${isOpen?"▾":"▸"} ${nTracks(r)} tracks</button>`:(r.plex&&r.tracks?`<span class="chip">${r.tracks} tracks</span>`:"");
-    const chips=(r.plex?[`<span class="chip plex">Plex</span>`]:[fmtShort(r.format)].concat(desc?desc.split(", ").slice(0,3):[]).map(c=>`<span class="chip">${esc(c)}</span>`)).join("")+tog;
+    const tog=hasTracks(r)?`<button class="tt ${isOpen?"open":""}" data-t="1" title="${isOpen?"Hide":"Show"} track list">${isOpen?"▾":"▸"} ${nTracks(r)}</button>`:(nTracks(r)?`<span class="chip">${nTracks(r)}</span>`:`<span class="chip" style="opacity:.5">—</span>`);
+    const chips=(r.plex?[`<span class="chip plex">Plex</span>`]:[fmtShort(r.format)].concat(desc?desc.split(", ").slice(0,3):[]).map(c=>`<span class="chip">${esc(c)}</span>`)).join("");
     const play=pk&&PLEX.machine?`<a class="playlink" href="${plexUrl(pk)}" target="_blank" rel="noopener" title="Open in Plex">▶ Plex</a>`:"";
     return `<tr class="row ${s.s}" data-id="${r.id}">
       <td class="th">${r.cover?`<img loading="lazy" src="${r.plex?esc(r.cover):`covers/${r.id%13}/${r.id}.jpg`}" onerror="this.onerror=null;if(this.dataset.f)this.src=this.dataset.f;else this.replaceWith(Object.assign(document.createElement('div'),{className:'noimg'}))" data-f="${r.plex?"":esc(r.cover)}" alt="">`:`<div class="noimg"></div>`}</td>
       <td><div class="t ${hasTracks(r)?"x":""}" title="Show tracks">${esc(r.title)}</div><div class="a">${esc(r.artist)}</div>${!r.plex&&s.s!=="todo"?`<div class="path mono">${esc(folder(r))}</div>`:""}</td>
       <td class="yr">${r.year||"—"}</td>
       <td>${chips}</td>
+      <td class="tr">${tog}</td>
       <td class="cat"><span class="l">${esc(r.label)}</span><br><span class="mono">${esc(r.catno)}</span></td>
       <td class="g">${esc((r.genres||[]).join(", "))}${r.styles&&r.styles.length?`<br><span style="color:var(--ink3)">${esc(r.styles.slice(0,2).join(", "))}</span>`:""}</td>
       <td>${r.plex?`<span class="srcchip">Plex only</span>`:`<div class="status" role="group">
