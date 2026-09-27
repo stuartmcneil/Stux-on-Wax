@@ -14,3 +14,4 @@ discogs_config.json
 # Plex thumbnails are ~120 MB — kept local only
 covers/plex/
 plex_tracks_cache.json
+discogs_tracks_cache.json
