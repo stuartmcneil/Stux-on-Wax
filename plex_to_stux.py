@@ -107,24 +107,41 @@ def fetch_tracks(base, token, albums, refresh):
     cache = {}
     if TRACKS_CACHE.exists() and not refresh:
         cache = json.loads(TRACKS_CACHE.read_text(encoding="utf-8"))
-    todo = [x for x in albums if x["key"] not in cache]
+    # re-fetch albums that are new, lack file details, or whose track count in Plex no longer
+    # matches the cache (e.g. after duplicates were removed)
+    todo = [x for x in albums if x["key"] not in cache or "files" not in cache[x["key"]]
+            or (x["tracks"] and len(cache[x["key"]]["t"]) != x["tracks"])]
+    gone = [k for k in cache if k not in {x["key"] for x in albums}]
+    for k in gone:
+        del cache[k]
+    if gone:
+        print(f"{len(gone)} albums no longer in Plex — dropped from the cache")
     print(f"Track lists: {len(albums)-len(todo)} cached, {len(todo)} to fetch")
     failed = 0
     for i, x in enumerate(todo, 1):
         try:
             page = get(f"{base}/library/metadata/{x['key']}/children", token)
             tracks = []
-            codec = br = ch = None
+            files = []          # per-track file details, kept in the cache for the duplicates report
+            codec = br = ch = folder = None
             for t in page.findall("Track"):
                 m = t.find("Media")
+                part = m.find("Part") if m is not None else None
                 if m is not None and codec is None:
                     codec, br, ch = m.get("audioCodec"), m.get("bitrate"), m.get("audioChannels")
+                    if part is not None and part.get("file"):
+                        f = part.get("file").replace("\\", "/").rstrip("/")
+                        folder = f.rsplit("/", 2)[-2] if f.count("/") >= 2 else ""
+                files.append([t.get("ratingKey"), part.get("file") if part is not None else "",
+                              int(part.get("size") or 0) if part is not None else 0,
+                              int(m.get("bitrate") or 0) if m is not None else 0,
+                              m.get("audioCodec") if m is not None else ""])
                 row = [int(t.get("index") or 0), t.get("title") or "", int(t.get("duration") or 0) // 1000]
                 ta = t.get("originalTitle")            # track artist on compilations / features
                 if ta and ta != x["artist"]:
                     row.append(ta)
                 tracks.append(row)
-            cache[x["key"]] = {"c": codec, "br": int(br) if br else None, "ch": int(ch) if ch else None, "t": tracks}
+            cache[x["key"]] = {"c": codec, "br": int(br) if br else None, "ch": int(ch) if ch else None, "t": tracks, "f": folder or "", "files": files}
         except Exception as e:
             failed += 1
             print(f"  x {x['artist']} – {x['title']}: {e}")
@@ -136,7 +153,8 @@ def fetch_tracks(base, token, albums, refresh):
     if failed:
         print(f"{failed} albums failed — run again with --tracks to retry those")
     n = sum(len(v["t"]) for v in cache.values())
-    TRACKS_JS.write_text("window.PLEX_TRACKS = " + json.dumps(cache, ensure_ascii=False, separators=(",", ":")) + ";\n",
+    public = {k: {kk: vv for kk, vv in v.items() if kk != "files"} for k, v in cache.items()}
+    TRACKS_JS.write_text("window.PLEX_TRACKS = " + json.dumps(public, ensure_ascii=False, separators=(",", ":")) + ";\n",
                          encoding="utf-8")
     print(f"Wrote {TRACKS_JS.name}: {len(cache)} albums, {n} tracks ({TRACKS_JS.stat().st_size//1024} KB)")
 
@@ -227,8 +245,16 @@ def main():
     if a.tracks or a.refresh_tracks:
         fetch_tracks(base, token, albums, a.refresh_tracks)
 
+    tc = json.loads(TRACKS_CACHE.read_text(encoding="utf-8")) if TRACKS_CACHE.exists() else {}
+    fixed = 0
     for x in albums:
         x["art"] = (a.art or a.force_art) and art_path(x).exists()
+        if not x["title"].strip():
+            f = tc.get(x["key"], {}).get("f", "")
+            if f and f.lower() not in ("music", "unknown album", "unknown", x["artist"].lower()):
+                x["folder"] = f; fixed += 1
+    if fixed:
+        print(f"{fixed} untitled Plex entries given an album name from their folder")
         del x["thumb"]
     data = {"machine": machine, "fetched": time.strftime("%d %b %Y"), "buckets": n, "albums": albums}
     OUT_JS.write_text("window.PLEX = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n",
