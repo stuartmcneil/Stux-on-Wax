@@ -11,9 +11,11 @@ Reads every album in your Plex music library and writes it out for the catalogue
 Setup:  pip install requests
         plex_config.json must exist (copy plex_config.example.json) with plex_url and plex_token
 
-Usage:  python plex_to_stux.py             # export + download any missing thumbnails
-        python plex_to_stux.py --no-art    # export only
-        python plex_to_stux.py --force-art # re-download every thumbnail
+Usage:  python plex_to_stux.py             # export the album list (no artwork — 9,600 thumbnails
+                                           #   is ~120 MB, too much for the GitHub site)
+        python plex_to_stux.py --art       # also download thumbnails into covers/plex/ (git-ignored)
+        python plex_to_stux.py --tracks    # also fetch every album's track list + audio details
+                                           #   into plex_tracks.js (one request per album; resumable)
 """
 import argparse, json, sys, time
 from pathlib import Path
@@ -27,6 +29,8 @@ except ImportError:
 HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "plex_config.json"
 OUT_JS = HERE / "plex_library.js"
+TRACKS_JS = HERE / "plex_tracks.js"
+TRACKS_CACHE = HERE / "plex_tracks_cache.json"   # git-ignored; lets a stopped run resume
 ART_DIR = HERE / "covers" / "plex"
 PAGE = 200
 
@@ -99,10 +103,50 @@ def bucket(key, n):
     return int(key) % n
 
 
+def fetch_tracks(base, token, albums, refresh):
+    cache = {}
+    if TRACKS_CACHE.exists() and not refresh:
+        cache = json.loads(TRACKS_CACHE.read_text(encoding="utf-8"))
+    todo = [x for x in albums if x["key"] not in cache]
+    print(f"Track lists: {len(albums)-len(todo)} cached, {len(todo)} to fetch")
+    failed = 0
+    for i, x in enumerate(todo, 1):
+        try:
+            page = get(f"{base}/library/metadata/{x['key']}/children", token)
+            tracks = []
+            codec = br = ch = None
+            for t in page.findall("Track"):
+                m = t.find("Media")
+                if m is not None and codec is None:
+                    codec, br, ch = m.get("audioCodec"), m.get("bitrate"), m.get("audioChannels")
+                row = [int(t.get("index") or 0), t.get("title") or "", int(t.get("duration") or 0) // 1000]
+                ta = t.get("originalTitle")            # track artist on compilations / features
+                if ta and ta != x["artist"]:
+                    row.append(ta)
+                tracks.append(row)
+            cache[x["key"]] = {"c": codec, "br": int(br) if br else None, "ch": int(ch) if ch else None, "t": tracks}
+        except Exception as e:
+            failed += 1
+            print(f"  x {x['artist']} – {x['title']}: {e}")
+        if i % 100 == 0:
+            print(f"  {i}/{len(todo)}…")
+            TRACKS_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+        time.sleep(0.05)
+    TRACKS_CACHE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+    if failed:
+        print(f"{failed} albums failed — run again with --tracks to retry those")
+    n = sum(len(v["t"]) for v in cache.values())
+    TRACKS_JS.write_text("window.PLEX_TRACKS = " + json.dumps(cache, ensure_ascii=False, separators=(",", ":")) + ";\n",
+                         encoding="utf-8")
+    print(f"Wrote {TRACKS_JS.name}: {len(cache)} albums, {n} tracks ({TRACKS_JS.stat().st_size//1024} KB)")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--no-art", action="store_true")
+    ap.add_argument("--art", action="store_true", help="also download thumbnails (local use only)")
     ap.add_argument("--force-art", action="store_true")
+    ap.add_argument("--tracks", action="store_true", help="fetch track lists and audio details")
+    ap.add_argument("--refresh-tracks", action="store_true", help="re-fetch tracks for every album")
     a = ap.parse_args()
     base, token = cfg()
     base = connect(base, token)
@@ -133,6 +177,8 @@ def main():
                     "tracks": int(d.get("leafCount") or 0),
                     "genres": [g.get("tag") for g in d.findall("Genre")][:3],
                     "added": time.strftime("%Y-%m-%d", time.localtime(int(d.get("addedAt") or 0))),
+                    "studio": d.get("studio") or "",
+                    "rating": float(d.get("userRating") or d.get("rating") or 0) or None,
                     "thumb": d.get("thumb"),
                     "lib": sec.get("title"),
                 })
@@ -157,7 +203,7 @@ def main():
         dest.parent.mkdir(parents=True, exist_ok=True)
         old.replace(dest)
 
-    if not a.no_art:
+    if a.art or a.force_art:
         todo = [x for x in albums if x["thumb"] and (a.force_art or not art_path(x).exists())]
         print(f"Thumbnails: {len(albums)-len(todo)} already saved, {len(todo)} to fetch (into {n} sub-folders)")
         failed = 0
@@ -178,8 +224,11 @@ def main():
         if failed:
             print(f"{failed} thumbnails failed — just run the script again to retry those")
 
+    if a.tracks or a.refresh_tracks:
+        fetch_tracks(base, token, albums, a.refresh_tracks)
+
     for x in albums:
-        x["art"] = art_path(x).exists()
+        x["art"] = (a.art or a.force_art) and art_path(x).exists()
         del x["thumb"]
     data = {"machine": machine, "fetched": time.strftime("%d %b %Y"), "buckets": n, "albums": albums}
     OUT_JS.write_text("window.PLEX = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n",
