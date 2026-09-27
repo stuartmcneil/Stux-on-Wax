@@ -4,9 +4,10 @@ Stux on Wax — cover art fetcher
 ================================
 Does two jobs, both driven by the Discogs collection data embedded in index.html:
 
-  1. PAGE COVERS   Downloads every record's Discogs thumbnail into covers/<release_id>.jpg
+  1. PAGE COVERS   Downloads every record's Discogs thumbnail into covers/<n>/<release_id>.jpg
+                   (n = release_id % 13 — keeps each folder under 100 files for GitHub's uploader)
                    so the catalogue page shows art without hotlinking Discogs (which blocks it).
-                   index.html tries covers/<id>.jpg first and falls back to the Discogs URL.
+                   index.html tries covers/<n>/<id>.jpg first and falls back to the Discogs URL.
 
   2. MP3 ART       For every album folder in digitized_vinyl/, finds the matching Discogs
                    release, downloads the full-size primary image via the Discogs API,
@@ -44,6 +45,11 @@ MAP_FILE = HERE / "cover_map.json"
 CONFIG = HERE / "discogs_config.json"
 UA = "StuxOnWax/1.0 +https://github.com/stuartmcneil"
 API = "https://api.discogs.com"
+BUCKETS = 13     # must match index.html
+
+
+def cover_path(release_id):
+    return COVERS / str(int(release_id) % BUCKETS) / f"{release_id}.jpg"
 
 
 # ---------- helpers ----------
@@ -91,14 +97,17 @@ def get(url, tok="", stream=False):
 # ---------- job 1: page thumbnails ----------
 def page_covers(records):
     COVERS.mkdir(exist_ok=True)
-    todo = [r for r in records if r.get("cover") and not (COVERS / f"{r['id']}.jpg").exists()]
+    # move thumbnails saved by an older run (flat covers/<id>.jpg) into their sub-folders
+    for old in COVERS.glob("*.jpg"):
+        dest = cover_path(old.stem); dest.parent.mkdir(exist_ok=True); old.replace(dest)
+    todo = [r for r in records if r.get("cover") and not cover_path(r["id"]).exists()]
     print(f"Page covers: {len(records) - len(todo)} already saved, {len(todo)} to fetch")
     ok = fail = 0
     for i, r in enumerate(todo, 1):
         try:
             resp = get(r["cover"])
             if resp.status_code == 200 and resp.headers.get("content-type", "").startswith("image"):
-                (COVERS / f"{r['id']}.jpg").write_bytes(resp.content)
+                p = cover_path(r["id"]); p.parent.mkdir(exist_ok=True); p.write_bytes(resp.content)
                 ok += 1
             else:
                 fail += 1
