@@ -1,0 +1,36 @@
+# Stux on Wax
+
+A catalogue of [Stuart McNeil](https://stuartmcneil.github.io/window/)'s vinyl collection and how much of it has been digitised into Plex.
+
+**Live page:** enable GitHub Pages (Settings → Pages → Deploy from branch → `main` / root) and open `https://<your-username>.github.io/<repo-name>/`.
+Or just open `index.html` locally.
+
+## What's here
+
+| File | What it is |
+|---|---|
+| `index.html` | The catalogue page — 978 releases from the [Discogs collection](https://www.discogs.com/user/stuartmcneil/collection), with a Shelf / Ripping / In Plex status and notes per record. Self-contained; cover art is pulled from Discogs. |
+| `progress.json` | The digitisation status. The page loads this automatically when served from GitHub Pages, so commit it whenever it changes (use **Back up progress** on the page, save over this file). |
+| `discogs_collection_snapshot.csv` | Plain CSV of the collection as fetched on 2 Sep 2026. |
+| `vinyl_digitizer.py` | Splits a recorded side into tracks, tags them from MusicBrainz and embeds artwork. |
+| `vinyl_index_generator.py` | Scans `digitized_vinyl/` and regenerates `index.html`. |
+| `stux_progress_updater.py` | Updates `progress.json` from what has been ripped. |
+| `discogs_to_stux.py` | Converts a Discogs CSV export and checks Plex for what's already in the library. |
+| `test_plex.py` | Quick Plex connection test. |
+| `plex_to_stux.py` | Exports every album in the Plex music library to `plex_library.js` so the page shows vinyl and digital music together, with a ▶ Plex link per album. Rerun after adding music to Plex. (Plex artwork isn't stored — 9,600 thumbnails is too much for GitHub — so Plex-only rows show a placeholder.) |
+| `plex_library.js` | The Plex album list the page loads. Commit it. |
+| `stux_covers.py` | Downloads cover art: `covers/` thumbnails for the page, and full-size Discogs art saved as `cover.jpg` and embedded in each digitised album's MP3s. |
+| `covers/` | Cover thumbnails for the page, one per Discogs release id. |
+| `discogs_config.example.json` | Template for `discogs_config.json` (Discogs personal access token — git-ignored). |
+| `plex_config.example.json` | Template for `plex_config.json` (your Plex URL and token — git-ignored, never commit the real one). |
+
+Audio files (`*.wav`, `*.mp3`, `digitized_vinyl/`) are ignored by git and stay on the local machine.
+
+## Keeping it up to date
+
+0. **Plex library:** `python plex_to_stux.py` (needs `plex_config.json`), then commit `plex_library.js`.
+
+1. **New records:** Discogs → `https://www.discogs.com/users/export` → Collection → Request Data Export → Download, then **Import Discogs CSV** on the page.
+2. **Progress:** mark records on the page, click **Back up progress**, save the download as `progress.json` in this folder, commit and push.
+
+Status is also kept in the browser's local storage as a fallback, so a page opened from disk still remembers what you clicked.

@@ -1,0 +1,15 @@
+# Audio never goes in the repo (GitHub rejects files over 100 MB and the WAVs are 300-700 MB each)
+*.wav
+*.mp3
+*.flac
+*.aiff
+digitized_vinyl/
+# Python
+__pycache__/
+*.pyc
+# Working folders / secrets
+temp_split/
+plex_config.json
+discogs_config.json
+# Plex thumbnails are ~120 MB — kept local only
+covers/plex/
