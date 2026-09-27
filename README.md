@@ -12,7 +12,12 @@ Or just open `index.html` locally.
 | `index.html` | The catalogue page — 978 releases from the [Discogs collection](https://www.discogs.com/user/stuartmcneil/collection), with a Shelf / Ripping / In Plex status and notes per record. Self-contained; cover art is pulled from Discogs. |
 | `progress.json` | The digitisation status. The page loads this automatically when served from GitHub Pages, so commit it whenever it changes (use **Back up progress** on the page, save over this file). |
 | `discogs_collection_snapshot.csv` | Plain CSV of the collection as fetched on 2 Sep 2026. |
-| `vinyl_digitizer.py` | Script that splits a recorded side into tracks, tags them from MusicBrainz and embeds artwork. |
+| `vinyl_digitizer.py` | Splits a recorded side into tracks, tags them from MusicBrainz and embeds artwork. |
+| `vinyl_index_generator.py` | Scans `digitized_vinyl/` and regenerates `index.html`. |
+| `stux_progress_updater.py` | Updates `progress.json` from what has been ripped. |
+| `discogs_to_stux.py` | Converts a Discogs CSV export and checks Plex for what's already in the library. |
+| `test_plex.py` | Quick Plex connection test. |
+| `plex_config.example.json` | Template for `plex_config.json` (your Plex URL and token — git-ignored, never commit the real one). |
 
 Audio files (`*.wav`, `*.mp3`, `digitized_vinyl/`) are ignored by git and stay on the local machine.
 
