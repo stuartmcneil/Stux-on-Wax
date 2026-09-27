@@ -181,8 +181,9 @@ details.help code{font-family:"IBM Plex Mono",monospace;font-size:12px;backgroun
   <input type="search" id="q" placeholder="Search artist, title, label, cat no…" autocomplete="off">
   <div class="seg" id="fSrc" role="group" aria-label="Source filter" hidden>
     <button data-v="" aria-pressed="true">All music</button>
-    <button data-v="vinyl" aria-pressed="false">Vinyl</button>
-    <button data-v="both" aria-pressed="false">Vinyl → Plex</button>
+    <button data-v="vinyl" aria-pressed="false">All vinyl</button>
+    <button data-v="both" aria-pressed="false">Both Plex and Vinyl</button>
+    <button data-v="torip" aria-pressed="false">Vinyl not on Plex (to rip)</button>
     <button data-v="plex" aria-pressed="false">Plex only</button>
   </div>
   <div class="seg" id="fStatus" role="group" aria-label="Status filter">
@@ -305,7 +306,10 @@ function render(){
   let rs=all().filter(r=>{
     const s=st(r.id);
     const sr=src(r);
-    if(filt.src==="onplex" ? sr==="vinyl" : (filt.src && sr!==filt.src)) return false;
+    if(filt.src==="onplex" ? sr==="vinyl"
+       : filt.src==="vinyl" ? r.plex
+       : filt.src==="torip" ? sr!=="vinyl"
+       : (filt.src && sr!==filt.src)) return false;
     if(filt.s && (r.plex || s.s!==filt.s)) return false;
     if(filt.f && fmtShort(r.format)!==filt.f) return false;
     if(filt.g && !(r.genres||[]).includes(filt.g)) return false;
